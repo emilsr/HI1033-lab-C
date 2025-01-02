@@ -80,21 +80,30 @@ class Database {
     var db: OpaquePointer?
 
     private init() {
-        let fileURL = try! FileManager.default
+        let fileManager = FileManager.default
+
+        // Path to the database file
+        let fileURL = try! fileManager
             .urls(for: .documentDirectory, in: .userDomainMask)
             .first!
             .appendingPathComponent("MoodTracker.sqlite")
 
+        // Check if the database file exists
+        if fileManager.fileExists(atPath: fileURL.path) {
+            // Delete the existing file
+            do {
+                try fileManager.removeItem(at: fileURL)
+                print("Old database deleted.")
+            } catch {
+                print("Failed to delete old database: \(error)")
+            }
+        }
+
+        // Open or create the SQLite database
         if sqlite3_open(fileURL.path, &db) != SQLITE_OK {
             print("Error opening database")
         } else {
-            // Drop the table if it already exists (for development/testing purposes)
-            let dropTableQuery = "DROP TABLE IF EXISTS Mood;"
-            if sqlite3_exec(db, dropTableQuery, nil, nil, nil) != SQLITE_OK {
-                print("Error dropping table")
-            }
-
-            // Create the table with UNIQUE constraint on the `date` column
+            // Create the table with the UNIQUE constraint on the `date` column
             let createTableQuery = """
                 CREATE TABLE IF NOT EXISTS Mood (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -104,6 +113,8 @@ class Database {
             """
             if sqlite3_exec(db, createTableQuery, nil, nil, nil) != SQLITE_OK {
                 print("Error creating table")
+            } else {
+                print("Database created successfully at \(fileURL.path)")
             }
         }
     }
@@ -112,6 +123,7 @@ class Database {
         sqlite3_close(db)
     }
 }
+
 
 @main
 struct MoodTrackerApp: App {
