@@ -65,7 +65,6 @@ struct HI1033_lab_CTests: View {
             } else {
                 message = "Error preparing statement."
             }
-
             sqlite3_finalize(statement)
         }
     }
@@ -93,6 +92,8 @@ class Database {
             if sqlite3_exec(db, createTableQuery, nil, nil, nil) != SQLITE_OK {
                 print("Error creating table")
             }
+            print("Database path: \(fileURL.path)")
+
         }
     }
 
