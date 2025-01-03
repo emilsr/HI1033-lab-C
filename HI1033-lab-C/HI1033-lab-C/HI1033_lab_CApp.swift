@@ -32,54 +32,79 @@ struct ActivityMoodScreen: View {
     @State private var activities: [Activity] = []
     @State private var moods: [Mood] = []
 
-    // Map month names to their corresponding numerical values
     private let monthOrder: [String: Int] = [
         "Jan": 1, "Feb": 2, "Mar": 3, "Apr": 4, "May": 5, "Jun": 6,
         "Jul": 7, "Aug": 8, "Sep": 9, "Oct": 10, "Nov": 11, "Dec": 12
     ]
+    
+    private let months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                         "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
     var body: some View {
         ScrollView {
-            VStack {
+            VStack(spacing: 20) {
                 Text("Activity Data")
                     .font(.headline)
 
-                Chart {
-                    ForEach(groupedActivities(), id: \.key) { activityType, data in
-                        ForEach(data.sorted(by: {
-                            (monthOrder[$0.month] ?? 0) < (monthOrder[$1.month] ?? 0)
-                        }), id: \.month) { activity in
-                            LineMark(
-                                x: .value("Month", activity.month),
-                                y: .value("Value", activity.value)
-                            )
-                            .foregroundStyle(by: .value("Activity Type", activityType))
-                        }
-                    }
-                }
-                .frame(height: 300)
+                activityChart
+                    .frame(height: 300)
+                    .padding(.horizontal)
 
                 Text("Mood Data")
                     .font(.headline)
 
-                Chart(moods) { mood in
-                    LineMark(
-                        x: .value("Date", mood.date),
-                        y: .value("Mood", mood.mood)
-                    )
-                }
-                .frame(height: 300)
+                moodChart
+                    .frame(height: 300)
+                    .padding(.horizontal)
             }
+            .padding(.vertical)
         }
         .onAppear(perform: loadData)
         .navigationTitle("Activity & Mood")
     }
 
-    // Group activities by type and sort them by the numerical month value
+    private var activityChart: some View {
+        Chart {
+            ForEach(groupedActivities(), id: \.key) { activityType, data in
+                ForEach(data, id: \.month) { activity in
+                    LineMark(
+                        x: .value("Month", monthOrder[activity.month] ?? 0),
+                        y: .value("Value", activity.value)
+                    )
+                    .foregroundStyle(by: .value("Activity Type", activityType))
+                }
+            }
+        }
+        .chartXAxis {
+            AxisMarks(values: .stride(by: 1)) { value in
+                if let month = value.as(Int.self),
+                   month >= 1 && month <= 12 {
+                    AxisValueLabel {
+                        Text(months[month - 1])
+                    }
+                }
+            }
+        }
+    }
+    
+    private var moodChart: some View {
+        Chart(moods) { mood in
+            LineMark(
+                x: .value("Date", mood.date),
+                y: .value("Mood", mood.mood)
+            )
+        }
+    }
+
     func groupedActivities() -> [(key: String, value: [Activity])] {
-        // Sort the activities by their month using the monthOrder dictionary
-        return Dictionary(grouping: activities, by: { $0.activityType })
-            .sorted(by: { $0.key < $1.key })
+        let grouped = Dictionary(grouping: activities) { $0.activityType }
+        return grouped.map { activityType, activities in
+            let sortedActivities = activities.sorted { a, b in
+                (monthOrder[a.month] ?? 0) < (monthOrder[b.month] ?? 0)
+            }
+            return (key: activityType, value: sortedActivities)
+        }
+        .sorted { $0.key < $1.key }
     }
 
     func loadData() {
