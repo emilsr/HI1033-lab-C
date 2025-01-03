@@ -129,7 +129,8 @@ class Database {
 struct MoodTrackerApp: App {
     var body: some Scene {
         WindowGroup {
-            HI1033_lab_CTests()
+            ActivityGraphScreen()
+            //HI1033_lab_CTests()
         }
     }
 }
