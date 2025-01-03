@@ -32,6 +32,7 @@ struct ActivityMoodScreen: View {
     @State private var activities: [Activity] = []
     @State private var moods: [Mood] = []
 
+    // Map month names to their corresponding numerical values
     private let monthOrder: [String: Int] = [
         "Jan": 1, "Feb": 2, "Mar": 3, "Apr": 4, "May": 5, "Jun": 6,
         "Jul": 7, "Aug": 8, "Sep": 9, "Oct": 10, "Nov": 11, "Dec": 12
@@ -44,8 +45,10 @@ struct ActivityMoodScreen: View {
                     .font(.headline)
 
                 Chart {
-                    ForEach(groupedActivities(), id: \ .key) { activityType, data in
-                        ForEach(data.sorted(by: { monthOrder[$0.month] ?? 0 < monthOrder[$1.month] ?? 0 }), id: \ .month) { activity in
+                    ForEach(groupedActivities(), id: \.key) { activityType, data in
+                        ForEach(data.sorted(by: {
+                            (monthOrder[$0.month] ?? 0) < (monthOrder[$1.month] ?? 0)
+                        }), id: \.month) { activity in
                             LineMark(
                                 x: .value("Month", activity.month),
                                 y: .value("Value", activity.value)
@@ -72,8 +75,11 @@ struct ActivityMoodScreen: View {
         .navigationTitle("Activity & Mood")
     }
 
+    // Group activities by type and sort them by the numerical month value
     func groupedActivities() -> [(key: String, value: [Activity])] {
-        Dictionary(grouping: activities, by: { $0.activityType }).sorted(by: { $0.key < $1.key })
+        // Sort the activities by their month using the monthOrder dictionary
+        return Dictionary(grouping: activities, by: { $0.activityType })
+            .sorted(by: { $0.key < $1.key })
     }
 
     func loadData() {
