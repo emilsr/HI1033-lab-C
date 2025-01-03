@@ -72,6 +72,12 @@ struct ActivityMoodScreen: View {
                         y: .value("Value", activity.value)
                     )
                     .foregroundStyle(by: .value("Activity Type", activityType))
+                    
+                    PointMark(
+                        x: .value("Month", monthOrder[activity.month] ?? 0),
+                        y: .value("Value", activity.value)
+                    )
+                    .foregroundStyle(by: .value("Activity Type", activityType))
                 }
             }
         }
@@ -90,6 +96,11 @@ struct ActivityMoodScreen: View {
     private var moodChart: some View {
         Chart(moods) { mood in
             LineMark(
+                x: .value("Date", mood.date),
+                y: .value("Mood", mood.mood)
+            )
+            
+            PointMark(
                 x: .value("Date", mood.date),
                 y: .value("Mood", mood.mood)
             )
