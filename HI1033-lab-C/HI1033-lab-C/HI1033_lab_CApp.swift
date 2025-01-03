@@ -1,12 +1,6 @@
-//
-//  HI1033_lab_CApp.swift
-//  HI1033-lab-C
-//
-//  Created by Emil Stener  on 2025-01-02.
-//
-
 import SwiftUI
 import SQLite3
+import Charts
 
 struct MainPage: View {
     var body: some View {
@@ -39,28 +33,42 @@ struct ActivityMoodScreen: View {
     @State private var moods: [Mood] = []
 
     var body: some View {
-        VStack {
-            List(activities) { activity in
-                VStack(alignment: .leading) {
-                    Text("\(activity.month) - \(activity.activityType)")
-                        .font(.headline)
-                    Text("Value: \(activity.value)")
-                        .font(.subheadline)
-                }
-            }
-            .navigationTitle("Activities")
+        ScrollView {
+            VStack {
+                Text("Activity Data")
+                    .font(.headline)
 
-            List(moods) { mood in
-                VStack(alignment: .leading) {
-                    Text("Date: \(mood.date)")
-                        .font(.headline)
-                    Text("Mood: \(mood.mood)")
-                        .font(.subheadline)
+                Chart {
+                    ForEach(groupedActivities(), id: \ .key) { activityType, data in
+                        ForEach(data, id: \ .month) { activity in
+                            LineMark(
+                                x: .value("Month", activity.month),
+                                y: .value("Value", activity.value)
+                            )
+                            .foregroundStyle(by: .value("Activity Type", activityType))
+                        }
+                    }
                 }
+                .frame(height: 300)
+
+                Text("Mood Data")
+                    .font(.headline)
+
+                Chart(moods) { mood in
+                    LineMark(
+                        x: .value("Date", mood.date),
+                        y: .value("Mood", mood.mood)
+                    )
+                }
+                .frame(height: 300)
             }
-            .navigationTitle("Mood Evaluations")
         }
         .onAppear(perform: loadData)
+        .navigationTitle("Activity & Mood")
+    }
+
+    func groupedActivities() -> [(key: String, value: [Activity])] {
+        Dictionary(grouping: activities, by: { $0.activityType }).sorted(by: { $0.key < $1.key })
     }
 
     func loadData() {
