@@ -1,131 +1,13 @@
+//
+//  ActivityMoodScreen.swift
+//  HI1033-lab-C
+//
+//  Created by Emil Stener  on 2025-01-04.
+//
+
 import SwiftUI
 import SQLite3
 import Charts
-
-/*
-struct MainPage: View {
-    var body: some View {
-        NavigationView {
-            TabView {
-                HomeScreen()
-                    .tabItem {
-                        Label("Home", systemImage: "house")
-                    }
-
-                ActivityMoodScreen()
-                    .tabItem {
-                        Label("Activity & Mood", systemImage: "list.dash")
-                    }
-            }
-        }
-    }
-}
-
-struct HomeScreen: View {
-    @State private var moodValue: Int = 3 // Default mood value
-    @State private var message: String = "" // Feedback message to the user
-    
-    var body: some View {
-        VStack(spacing: 20) {
-            Text("How are you feeling today?")
-                .font(.title)
-                .padding()
-            
-            Stepper(value: $moodValue, in: 1...5) {
-                Text("Mood: \(moodValue)")
-                    .font(.headline)
-            }
-            .padding()
-            
-            Button(action: saveMood) {
-                Text("Save Mood")
-                    .font(.headline)
-                    .foregroundColor(.white)
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.blue)
-                    .cornerRadius(10)
-            }
-            .padding(.horizontal)
-            
-            if !message.isEmpty {
-                Text(message)
-                    .font(.subheadline)
-                    .foregroundColor(.green)
-                    .padding()
-            }
-        }
-        .padding()
-    }
-    
-    func saveMood() {
-        let databasePath = Bundle.main.path(forResource: "activities-3", ofType: "db")
-        guard let path = databasePath else {
-            message = "Database not found."
-            return
-        }
-        
-        var db: OpaquePointer? = nil
-        if sqlite3_open(path, &db) != SQLITE_OK {
-            message = "Unable to open database."
-            return
-        }
-        
-        defer {
-            sqlite3_close(db)
-        }
-        
-        // Get today's date in "yyyy-MM-dd" format
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd"
-        let todayDate = dateFormatter.string(from: Date())
-        
-        // SQL query to insert or replace the mood value for today's date
-        let insertQuery = """
-        INSERT INTO MoodEvaluation (Date, Mood)
-        VALUES (?, ?)
-        ON CONFLICT(Date)
-        DO UPDATE SET Mood = excluded.Mood;
-        """
-        
-        var stmt: OpaquePointer? = nil
-        
-        if sqlite3_prepare_v2(db, insertQuery, -1, &stmt, nil) == SQLITE_OK {
-            sqlite3_bind_text(stmt, 1, todayDate, -1, nil) // Bind date
-            sqlite3_bind_int(stmt, 2, Int32(moodValue))    // Bind mood value
-            
-            if sqlite3_step(stmt) == SQLITE_DONE {
-                message = "Mood saved successfully!"
-            } else {
-                message = "Failed to save mood."
-            }
-        } else {
-            message = "Failed to prepare statement."
-        }
-        
-        sqlite3_finalize(stmt)
-    }
-}
-
-struct TotalDistance: Identifiable {
-    let id: UUID
-    let month: String
-    let distance: Int
-    let activityType: String
-}
-
-struct Activity: Identifiable {
-    let id: UUID
-    let month: String
-    let activityType: String
-    let value: Int
-}
-
-struct MonthlyMood: Identifiable {
-    let id: UUID
-    let month: String
-    let averageMood: Double
-}
 
 struct ActivityMoodScreen: View {
     @State private var activities: [Activity] = []
@@ -379,32 +261,17 @@ struct ActivityMoodScreen: View {
                                 WHEN substr(Date, 6, 2) = '10' THEN 'Oct'
                                 WHEN substr(Date, 6, 2) = '11' THEN 'Nov'
                                 WHEN substr(Date, 6, 2) = '12' THEN 'Dec'
-                            END as Month,
+                            END AS Month,
                             Mood
                         FROM MoodEvaluation
-                    ) me ON m.Month = me.Month
+                    ) me
+                    ON m.Month = me.Month
                     GROUP BY m.Month
-                    ORDER BY (
-                        CASE m.Month
-                            WHEN 'Jan' THEN 1
-                            WHEN 'Feb' THEN 2
-                            WHEN 'Mar' THEN 3
-                            WHEN 'Apr' THEN 4
-                            WHEN 'May' THEN 5
-                            WHEN 'Jun' THEN 6
-                            WHEN 'Jul' THEN 7
-                            WHEN 'Aug' THEN 8
-                            WHEN 'Sep' THEN 9
-                            WHEN 'Oct' THEN 10
-                            WHEN 'Nov' THEN 11
-                            WHEN 'Dec' THEN 12
-                        END)
+                    ORDER BY monthOrder[m.Month];
         """
         var moodStmt: OpaquePointer? = nil
 
         if sqlite3_prepare_v2(db, moodQuery, -1, &moodStmt, nil) == SQLITE_OK {
-            moods.removeAll()
-            
             while sqlite3_step(moodStmt) == SQLITE_ROW {
                 let month = String(cString: sqlite3_column_text(moodStmt, 0))
                 let averageMood = sqlite3_column_double(moodStmt, 1)
@@ -422,14 +289,3 @@ struct ActivityMoodScreen: View {
         sqlite3_finalize(moodStmt)
     }
 }
-
-@main
-struct MyApp: App {
-    var body: some Scene {
-        WindowGroup {
-            MainPage()
-        }
-    }
-}
-
-*/
