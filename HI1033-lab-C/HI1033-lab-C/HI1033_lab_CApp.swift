@@ -28,17 +28,17 @@ struct HomeScreen: View {
     }
 }
 
-// Add new struct for TotalDistance
 struct TotalDistance: Identifiable {
     let id: UUID
     let month: String
     let distance: Int
+    let activityType: String // New property
 }
 
 struct ActivityMoodScreen: View {
     @State private var activities: [Activity] = []
     @State private var moods: [Mood] = []
-    @State private var distances: [TotalDistance] = [] // New state variable
+    @State private var distances: [TotalDistance] = [] // Updated to include activityType
 
     private let monthOrder: [String: Int] = [
         "Jan": 1, "Feb": 2, "Mar": 3, "Apr": 4, "May": 5, "Jun": 6,
@@ -108,21 +108,22 @@ struct ActivityMoodScreen: View {
         }
     }
     
-    // New chart for total distance
     private var distanceChart: some View {
         Chart {
-            ForEach(distances.sorted { (monthOrder[$0.month] ?? 0) < (monthOrder[$1.month] ?? 0) }) { distance in
-                LineMark(
-                    x: .value("Month", monthOrder[distance.month] ?? 0),
-                    y: .value("Distance", distance.distance)
-                )
-                .foregroundStyle(.blue)
-                
-                PointMark(
-                    x: .value("Month", monthOrder[distance.month] ?? 0),
-                    y: .value("Distance", distance.distance)
-                )
-                .foregroundStyle(.blue)
+            ForEach(groupedDistances(), id: \.key) { activityType, data in
+                ForEach(data) { distance in
+                    LineMark(
+                        x: .value("Month", monthOrder[distance.month] ?? 0),
+                        y: .value("Distance", distance.distance)
+                    )
+                    .foregroundStyle(by: .value("Activity Type", activityType))
+                    
+                    PointMark(
+                        x: .value("Month", monthOrder[distance.month] ?? 0),
+                        y: .value("Distance", distance.distance)
+                    )
+                    .foregroundStyle(by: .value("Activity Type", activityType))
+                }
             }
         }
         .chartXAxis {
@@ -135,6 +136,7 @@ struct ActivityMoodScreen: View {
                 }
             }
         }
+        .chartLegend(position: .top) // Optional: Add a legend
     }
     
     private var moodChart: some View {
@@ -158,6 +160,17 @@ struct ActivityMoodScreen: View {
                 (monthOrder[a.month] ?? 0) < (monthOrder[b.month] ?? 0)
             }
             return (key: activityType, value: sortedActivities)
+        }
+        .sorted { $0.key < $1.key }
+    }
+    
+    func groupedDistances() -> [(key: String, value: [TotalDistance])] {
+        let grouped = Dictionary(grouping: distances) { $0.activityType }
+        return grouped.map { activityType, distances in
+            let sortedDistances = distances.sorted { a, b in
+                (monthOrder[a.month] ?? 0) < (monthOrder[b.month] ?? 0)
+            }
+            return (key: activityType, value: sortedDistances)
         }
         .sorted { $0.key < $1.key }
     }
@@ -198,15 +211,16 @@ struct ActivityMoodScreen: View {
         sqlite3_finalize(activityStmt)
         
         // Load total distances
-        let distanceQuery = "SELECT Month, Distance FROM TotalDistance"
+        let distanceQuery = "SELECT Month, Distance, ActivityType FROM TotalDistance"
         var distanceStmt: OpaquePointer? = nil
         
         if sqlite3_prepare_v2(db, distanceQuery, -1, &distanceStmt, nil) == SQLITE_OK {
             while sqlite3_step(distanceStmt) == SQLITE_ROW {
                 let month = String(cString: sqlite3_column_text(distanceStmt, 0))
                 let distance = sqlite3_column_int(distanceStmt, 1)
+                let activityType = String(cString: sqlite3_column_text(distanceStmt, 2))
                 
-                distances.append(TotalDistance(id: UUID(), month: month, distance: Int(distance)))
+                distances.append(TotalDistance(id: UUID(), month: month, distance: Int(distance), activityType: activityType))
             }
         } else {
             print("Failed to fetch distances.")
