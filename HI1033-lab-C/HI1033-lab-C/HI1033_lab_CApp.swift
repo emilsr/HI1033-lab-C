@@ -28,9 +28,17 @@ struct HomeScreen: View {
     }
 }
 
+// Add new struct for TotalDistance
+struct TotalDistance: Identifiable {
+    let id: UUID
+    let month: String
+    let distance: Int
+}
+
 struct ActivityMoodScreen: View {
     @State private var activities: [Activity] = []
     @State private var moods: [Mood] = []
+    @State private var distances: [TotalDistance] = [] // New state variable
 
     private let monthOrder: [String: Int] = [
         "Jan": 1, "Feb": 2, "Mar": 3, "Apr": 4, "May": 5, "Jun": 6,
@@ -47,6 +55,13 @@ struct ActivityMoodScreen: View {
                     .font(.headline)
 
                 activityChart
+                    .frame(height: 300)
+                    .padding(.horizontal)
+                
+                Text("Total Distance")
+                    .font(.headline)
+                
+                distanceChart
                     .frame(height: 300)
                     .padding(.horizontal)
 
@@ -79,6 +94,35 @@ struct ActivityMoodScreen: View {
                     )
                     .foregroundStyle(by: .value("Activity Type", activityType))
                 }
+            }
+        }
+        .chartXAxis {
+            AxisMarks(values: .stride(by: 1)) { value in
+                if let month = value.as(Int.self),
+                   month >= 1 && month <= 12 {
+                    AxisValueLabel {
+                        Text(months[month - 1])
+                    }
+                }
+            }
+        }
+    }
+    
+    // New chart for total distance
+    private var distanceChart: some View {
+        Chart {
+            ForEach(distances.sorted { (monthOrder[$0.month] ?? 0) < (monthOrder[$1.month] ?? 0) }) { distance in
+                LineMark(
+                    x: .value("Month", monthOrder[distance.month] ?? 0),
+                    y: .value("Distance", distance.distance)
+                )
+                .foregroundStyle(.blue)
+                
+                PointMark(
+                    x: .value("Month", monthOrder[distance.month] ?? 0),
+                    y: .value("Distance", distance.distance)
+                )
+                .foregroundStyle(.blue)
             }
         }
         .chartXAxis {
@@ -152,6 +196,23 @@ struct ActivityMoodScreen: View {
         }
 
         sqlite3_finalize(activityStmt)
+        
+        // Load total distances
+        let distanceQuery = "SELECT Month, Distance FROM TotalDistance"
+        var distanceStmt: OpaquePointer? = nil
+        
+        if sqlite3_prepare_v2(db, distanceQuery, -1, &distanceStmt, nil) == SQLITE_OK {
+            while sqlite3_step(distanceStmt) == SQLITE_ROW {
+                let month = String(cString: sqlite3_column_text(distanceStmt, 0))
+                let distance = sqlite3_column_int(distanceStmt, 1)
+                
+                distances.append(TotalDistance(id: UUID(), month: month, distance: Int(distance)))
+            }
+        } else {
+            print("Failed to fetch distances.")
+        }
+        
+        sqlite3_finalize(distanceStmt)
 
         // Load moods
         let moodQuery = "SELECT Date, Mood FROM MoodEvaluation"
