@@ -35,9 +35,22 @@ struct TotalDistance: Identifiable {
     let activityType: String
 }
 
+struct Activity: Identifiable {
+    let id: UUID
+    let month: String
+    let activityType: String
+    let value: Int
+}
+
+struct MonthlyMood: Identifiable {
+    let id: UUID
+    let month: String
+    let averageMood: Double
+}
+
 struct ActivityMoodScreen: View {
     @State private var activities: [Activity] = []
-    @State private var moods: [Mood] = []
+    @State private var moods: [MonthlyMood] = []
     @State private var distances: [TotalDistance] = []
 
     private let monthOrder: [String: Int] = [
@@ -65,7 +78,7 @@ struct ActivityMoodScreen: View {
                     .frame(height: 300)
                     .padding(.horizontal)
 
-                Text("Mood Data")
+                Text("Average Monthly Mood")
                     .font(.headline)
 
                 moodChart
@@ -130,21 +143,36 @@ struct ActivityMoodScreen: View {
                 }
             }
         }
-        .chartLegend(position: .top) // Optional: Add a legend
+        .chartLegend(position: .top)
     }
     
     private var moodChart: some View {
-        Chart(moods) { mood in
-            LineMark(
-                x: .value("Date", mood.date),
-                y: .value("Mood", mood.mood)
-            )
-            
-            PointMark(
-                x: .value("Date", mood.date),
-                y: .value("Mood", mood.mood)
-            )
+        Chart {
+            ForEach(moods) { mood in
+                LineMark(
+                    x: .value("Month", monthOrder[mood.month] ?? 0),
+                    y: .value("Average Mood", mood.averageMood)
+                )
+                .foregroundStyle(Color.blue)
+                
+                PointMark(
+                    x: .value("Month", monthOrder[mood.month] ?? 0),
+                    y: .value("Average Mood", mood.averageMood)
+                )
+                .foregroundStyle(Color.blue)
+            }
         }
+        .chartXAxis {
+            AxisMarks(values: .stride(by: 1)) { value in
+                if let month = value.as(Int.self),
+                   month >= 1 && month <= 12 {
+                    AxisValueLabel {
+                        Text(months[month - 1])
+                    }
+                }
+            }
+        }
+        .chartYScale(domain: 0...5)
     }
 
     func groupedActivities() -> [(key: String, value: [Activity])] {
@@ -196,7 +224,12 @@ struct ActivityMoodScreen: View {
                 let activityType = String(cString: sqlite3_column_text(activityStmt, 1))
                 let value = sqlite3_column_int(activityStmt, 2)
 
-                activities.append(Activity(id: UUID(), month: month, activityType: activityType, value: Int(value)))
+                activities.append(Activity(
+                    id: UUID(),
+                    month: month,
+                    activityType: activityType,
+                    value: Int(value)
+                ))
             }
         } else {
             print("Failed to fetch activities.")
@@ -214,7 +247,12 @@ struct ActivityMoodScreen: View {
                 let distance = sqlite3_column_int(distanceStmt, 1)
                 let activityType = String(cString: sqlite3_column_text(distanceStmt, 2))
                 
-                distances.append(TotalDistance(id: UUID(), month: month, distance: Int(distance), activityType: activityType))
+                distances.append(TotalDistance(
+                    id: UUID(),
+                    month: month,
+                    distance: Int(distance),
+                    activityType: activityType
+                ))
             }
         } else {
             print("Failed to fetch distances.")
@@ -222,16 +260,81 @@ struct ActivityMoodScreen: View {
         
         sqlite3_finalize(distanceStmt)
 
-        // Load moods
-        let moodQuery = "SELECT Date, Mood FROM MoodEvaluation"
+        // Load moods with monthly averaging and all months included
+        let moodQuery = """
+                    WITH RECURSIVE Months(Month) AS (
+                      SELECT 'Jan'
+                      UNION ALL
+                      SELECT CASE Month 
+                        WHEN 'Jan' THEN 'Feb'
+                        WHEN 'Feb' THEN 'Mar'
+                        WHEN 'Mar' THEN 'Apr'
+                        WHEN 'Apr' THEN 'May'
+                        WHEN 'May' THEN 'Jun'
+                        WHEN 'Jun' THEN 'Jul'
+                        WHEN 'Jul' THEN 'Aug'
+                        WHEN 'Aug' THEN 'Sep'
+                        WHEN 'Sep' THEN 'Oct'
+                        WHEN 'Oct' THEN 'Nov'
+                        WHEN 'Nov' THEN 'Dec'
+                      END
+                      FROM Months
+                      WHERE Month != 'Dec'
+                    )
+                    SELECT 
+                        m.Month,
+                        COALESCE(ROUND(AVG(CAST(me.Mood AS FLOAT)), 2), 0) as AverageMood
+                    FROM Months m
+                    LEFT JOIN (
+                        SELECT 
+                            CASE 
+                                WHEN substr(Date, 6, 2) = '01' THEN 'Jan'
+                                WHEN substr(Date, 6, 2) = '02' THEN 'Feb'
+                                WHEN substr(Date, 6, 2) = '03' THEN 'Mar'
+                                WHEN substr(Date, 6, 2) = '04' THEN 'Apr'
+                                WHEN substr(Date, 6, 2) = '05' THEN 'May'
+                                WHEN substr(Date, 6, 2) = '06' THEN 'Jun'
+                                WHEN substr(Date, 6, 2) = '07' THEN 'Jul'
+                                WHEN substr(Date, 6, 2) = '08' THEN 'Aug'
+                                WHEN substr(Date, 6, 2) = '09' THEN 'Sep'
+                                WHEN substr(Date, 6, 2) = '10' THEN 'Oct'
+                                WHEN substr(Date, 6, 2) = '11' THEN 'Nov'
+                                WHEN substr(Date, 6, 2) = '12' THEN 'Dec'
+                            END as Month,
+                            Mood
+                        FROM MoodEvaluation
+                    ) me ON m.Month = me.Month
+                    GROUP BY m.Month
+                    ORDER BY (
+                        CASE m.Month
+                            WHEN 'Jan' THEN 1
+                            WHEN 'Feb' THEN 2
+                            WHEN 'Mar' THEN 3
+                            WHEN 'Apr' THEN 4
+                            WHEN 'May' THEN 5
+                            WHEN 'Jun' THEN 6
+                            WHEN 'Jul' THEN 7
+                            WHEN 'Aug' THEN 8
+                            WHEN 'Sep' THEN 9
+                            WHEN 'Oct' THEN 10
+                            WHEN 'Nov' THEN 11
+                            WHEN 'Dec' THEN 12
+                        END)
+        """
         var moodStmt: OpaquePointer? = nil
 
         if sqlite3_prepare_v2(db, moodQuery, -1, &moodStmt, nil) == SQLITE_OK {
+            moods.removeAll()
+            
             while sqlite3_step(moodStmt) == SQLITE_ROW {
-                let date = String(cString: sqlite3_column_text(moodStmt, 0))
-                let mood = sqlite3_column_int(moodStmt, 1)
+                let month = String(cString: sqlite3_column_text(moodStmt, 0))
+                let averageMood = sqlite3_column_double(moodStmt, 1)
 
-                moods.append(Mood(id: UUID(), date: date, mood: Int(mood)))
+                moods.append(MonthlyMood(
+                    id: UUID(),
+                    month: month,
+                    averageMood: averageMood
+                ))
             }
         } else {
             print("Failed to fetch moods.")
@@ -239,19 +342,6 @@ struct ActivityMoodScreen: View {
 
         sqlite3_finalize(moodStmt)
     }
-}
-
-struct Activity: Identifiable {
-    let id: UUID
-    let month: String
-    let activityType: String
-    let value: Int
-}
-
-struct Mood: Identifiable {
-    let id: UUID
-    let date: String
-    let mood: Int
 }
 
 @main
