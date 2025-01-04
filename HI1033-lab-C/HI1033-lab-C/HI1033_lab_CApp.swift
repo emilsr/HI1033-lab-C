@@ -32,13 +32,13 @@ struct TotalDistance: Identifiable {
     let id: UUID
     let month: String
     let distance: Int
-    let activityType: String // New property
+    let activityType: String
 }
 
 struct ActivityMoodScreen: View {
     @State private var activities: [Activity] = []
     @State private var moods: [Mood] = []
-    @State private var distances: [TotalDistance] = [] // Updated to include activityType
+    @State private var distances: [TotalDistance] = []
 
     private let monthOrder: [String: Int] = [
         "Jan": 1, "Feb": 2, "Mar": 3, "Apr": 4, "May": 5, "Jun": 6,
@@ -110,19 +110,13 @@ struct ActivityMoodScreen: View {
     
     private var distanceChart: some View {
         Chart {
-            ForEach(groupedDistances(), id: \.key) { activityType, data in
+            ForEach(groupedDistances(), id: \.key) { month, data in
                 ForEach(data) { distance in
-                    LineMark(
+                    BarMark(
                         x: .value("Month", monthOrder[distance.month] ?? 0),
                         y: .value("Distance", distance.distance)
                     )
-                    .foregroundStyle(by: .value("Activity Type", activityType))
-                    
-                    PointMark(
-                        x: .value("Month", monthOrder[distance.month] ?? 0),
-                        y: .value("Distance", distance.distance)
-                    )
-                    .foregroundStyle(by: .value("Activity Type", activityType))
+                    .foregroundStyle(by: .value("Activity Type", distance.activityType))
                 }
             }
         }
@@ -165,14 +159,14 @@ struct ActivityMoodScreen: View {
     }
     
     func groupedDistances() -> [(key: String, value: [TotalDistance])] {
-        let grouped = Dictionary(grouping: distances) { $0.activityType }
-        return grouped.map { activityType, distances in
+        let grouped = Dictionary(grouping: distances) { $0.month }
+        return grouped.map { month, distances in
             let sortedDistances = distances.sorted { a, b in
-                (monthOrder[a.month] ?? 0) < (monthOrder[b.month] ?? 0)
+                a.activityType < b.activityType
             }
-            return (key: activityType, value: sortedDistances)
+            return (key: month, value: sortedDistances)
         }
-        .sorted { $0.key < $1.key }
+        .sorted { (monthOrder[$0.key] ?? 0) < (monthOrder[$1.key] ?? 0) }
     }
 
     func loadData() {
