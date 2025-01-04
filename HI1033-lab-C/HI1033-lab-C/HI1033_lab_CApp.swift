@@ -2,7 +2,6 @@ import SwiftUI
 import SQLite3
 import Charts
 
-/*
 struct MainPage: View {
     var body: some View {
         NavigationView {
@@ -431,5 +430,3 @@ struct MyApp: App {
         }
     }
 }
-
-*/
