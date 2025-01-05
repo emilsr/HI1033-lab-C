@@ -24,6 +24,8 @@ class ActivityMoodViewModel: ObservableObject {
         activities = DatabaseManager.shared.fetchActivities()
         distances = DatabaseManager.shared.fetchDistances()
         moods = DatabaseManager.shared.fetchMoods()
+        print("Moods: \(moods)")
+
     }
 
     func groupedActivities() -> [(key: String, value: [Activity])] {
