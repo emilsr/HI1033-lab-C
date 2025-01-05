@@ -34,12 +34,6 @@ func getWritableDatabasePath() -> String? {
 }
 
 
-
-
-
-
-
-
 //######## View ########
 struct MainPage: View {
     var body: some View {
