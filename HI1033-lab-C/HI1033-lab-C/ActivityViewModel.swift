@@ -57,4 +57,5 @@ class ActivityMoodViewModel: ObservableObject {
     func getMonthOrder() -> [String: Int] {
         return monthOrder
     }
+    
 }
