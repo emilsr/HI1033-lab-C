@@ -33,7 +33,6 @@ func getWritableDatabasePath() -> String? {
     return writableDatabasePath
 }
 
-
 //######## View ########
 struct MainPage: View {
     var body: some View {
@@ -53,93 +52,8 @@ struct MainPage: View {
     }
 }
 
-struct HomeScreen: View {
-    @State private var moodValue: Int = 3 // Default mood value
-    @State private var message: String = "" // Feedback message to the user
-    
-    var body: some View {
-        VStack(spacing: 20) {
-            Text("How are you feeling today?")
-                .font(.title)
-                .padding()
-            
-            Stepper(value: $moodValue, in: 1...5) {
-                Text("Mood: \(moodValue)")
-                    .font(.headline)
-            }
-            .padding()
-            
-            Button(action: saveMood) {
-                Text("Save Mood")
-                    .font(.headline)
-                    .foregroundColor(.white)
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.blue)
-                    .cornerRadius(10)
-            }
-            .padding(.horizontal)
-            
-            if !message.isEmpty {
-                Text(message)
-                    .font(.subheadline)
-                    .foregroundColor(.green)
-                    .padding()
-            }
-        }
-        .padding()
-    }
-    
-    func saveMood() {
-        guard let writableDatabasePath = getWritableDatabasePath() else {
-            message = "Database path not found."
-            return
-        }
 
-        var db: OpaquePointer? = nil
-        if sqlite3_open(writableDatabasePath, &db) != SQLITE_OK {
-            message = "Unable to open database."
-            return
-        }
-
-        defer {
-            sqlite3_close(db)
-        }
-
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd"
-        let todayDate = dateFormatter.string(from: Date())
-
-        let insertQuery = """
-        INSERT INTO MoodEvaluation (Date, Mood)
-        VALUES (?, ?)
-        ON CONFLICT(Date)
-        DO UPDATE SET Mood = excluded.Mood;
-        """
-
-        var stmt: OpaquePointer? = nil
-
-        if sqlite3_prepare_v2(db, insertQuery, -1, &stmt, nil) == SQLITE_OK {
-            sqlite3_bind_text(stmt, 1, todayDate, -1, nil)
-            sqlite3_bind_int(stmt, 2, Int32(moodValue))
-
-            if sqlite3_step(stmt) == SQLITE_DONE {
-                message = "Mood saved successfully!"
-            } else {
-                message = "Failed to save mood."
-            }
-        } else {
-            message = "Failed to prepare statement."
-        }
-
-        sqlite3_finalize(stmt)
-    }
-
-
-    
-
-}
-
+/*
 struct TotalDistance: Identifiable {
     let id: UUID
     let month: String
@@ -159,6 +73,8 @@ struct MonthlyMood: Identifiable {
     let month: String
     let averageMood: Double
 }
+ */
+
 
 struct ActivityMoodScreen: View {
     @State private var activities: [Activity] = []
