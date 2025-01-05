@@ -2,6 +2,7 @@ import SwiftUI
 import SQLite3
 import Charts
 
+
 func getWritableDatabasePath() -> String? {
     let fileManager = FileManager.default
 
@@ -33,6 +34,8 @@ func getWritableDatabasePath() -> String? {
     return writableDatabasePath
 }
 
+ 
+ 
 //######## View ########
 struct MainPage: View {
     var body: some View {
@@ -52,7 +55,7 @@ struct MainPage: View {
     }
 }
 
-
+/*
 struct ActivityMoodScreen: View {
     @State private var activities: [Activity] = []
     @State private var moods: [MonthlyMood] = []
@@ -276,6 +279,7 @@ struct ActivityMoodScreen: View {
         sqlite3_finalize(moodStmt)
     }
 }
+ */
 
 @main
 struct MyApp: App {

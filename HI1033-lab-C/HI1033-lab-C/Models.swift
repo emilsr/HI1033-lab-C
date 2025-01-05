@@ -5,8 +5,6 @@
 //  Created by Emil Stener  on 2025-01-05.
 //
 
-
-
 import Foundation
 
 struct TotalDistance: Identifiable {
