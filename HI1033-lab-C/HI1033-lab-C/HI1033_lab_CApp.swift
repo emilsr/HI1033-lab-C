@@ -2,6 +2,45 @@ import SwiftUI
 import SQLite3
 import Charts
 
+func getWritableDatabasePath() -> String? {
+    let fileManager = FileManager.default
+
+    // Get the Documents directory path
+    guard let documentsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first else {
+        return nil
+    }
+
+    let writableDatabasePath = documentsDirectory.appendingPathComponent("activities-3.db").path
+
+    // Check if the database file already exists in the Documents directory
+    if !fileManager.fileExists(atPath: writableDatabasePath) {
+        // Get the database path in the app bundle
+        guard let bundledDatabasePath = Bundle.main.path(forResource: "activities-3", ofType: "db") else {
+            print("Database not found in the bundle.")
+            return nil
+        }
+
+        do {
+            // Copy the database to the writable directory
+            try fileManager.copyItem(atPath: bundledDatabasePath, toPath: writableDatabasePath)
+            print("Database copied to writable directory.")
+        } catch {
+            print("Failed to copy database: \(error.localizedDescription)")
+            return nil
+        }
+    }
+    print("File path:" + writableDatabasePath)
+    return writableDatabasePath
+}
+
+
+
+
+
+
+
+
+//######## View ########
 struct MainPage: View {
     var body: some View {
         NavigationView {
@@ -58,41 +97,38 @@ struct HomeScreen: View {
     }
     
     func saveMood() {
-        let databasePath = Bundle.main.path(forResource: "activities-3", ofType: "db")
-        guard let path = databasePath else {
-            message = "Database not found."
+        guard let writableDatabasePath = getWritableDatabasePath() else {
+            message = "Database path not found."
             return
         }
-        
+
         var db: OpaquePointer? = nil
-        if sqlite3_open(path, &db) != SQLITE_OK {
+        if sqlite3_open(writableDatabasePath, &db) != SQLITE_OK {
             message = "Unable to open database."
             return
         }
-        
+
         defer {
             sqlite3_close(db)
         }
-        
-        // Get today's date in "yyyy-MM-dd" format
+
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
         let todayDate = dateFormatter.string(from: Date())
-        
-        // SQL query to insert or replace the mood value for today's date
+
         let insertQuery = """
         INSERT INTO MoodEvaluation (Date, Mood)
         VALUES (?, ?)
         ON CONFLICT(Date)
         DO UPDATE SET Mood = excluded.Mood;
         """
-        
+
         var stmt: OpaquePointer? = nil
-        
+
         if sqlite3_prepare_v2(db, insertQuery, -1, &stmt, nil) == SQLITE_OK {
-            sqlite3_bind_text(stmt, 1, todayDate, -1, nil) // Bind date
-            sqlite3_bind_int(stmt, 2, Int32(moodValue))    // Bind mood value
-            
+            sqlite3_bind_text(stmt, 1, todayDate, -1, nil)
+            sqlite3_bind_int(stmt, 2, Int32(moodValue))
+
             if sqlite3_step(stmt) == SQLITE_DONE {
                 message = "Mood saved successfully!"
             } else {
@@ -101,9 +137,13 @@ struct HomeScreen: View {
         } else {
             message = "Failed to prepare statement."
         }
-        
+
         sqlite3_finalize(stmt)
     }
+
+
+    
+
 }
 
 struct TotalDistance: Identifiable {
@@ -276,21 +316,20 @@ struct ActivityMoodScreen: View {
     }
 
     func loadData() {
-        let databasePath = Bundle.main.path(forResource: "activities-3", ofType: "db")
-        guard let path = databasePath else {
-            print("Database not found.")
-            return
-        }
+        guard let writableDatabasePath = getWritableDatabasePath() else {
+                print("Database path not found.")
+                return
+            }
 
-        var db: OpaquePointer? = nil
-        if sqlite3_open(path, &db) != SQLITE_OK {
-            print("Unable to open database.")
-            return
-        }
+            var db: OpaquePointer? = nil
+            if sqlite3_open(writableDatabasePath, &db) != SQLITE_OK {
+                print("Unable to open database.")
+                return
+            }
 
-        defer {
-            sqlite3_close(db)
-        }
+            defer {
+                sqlite3_close(db)
+            }
 
         // Load activities
         let activityQuery = "SELECT Month, ActivityType, Value FROM Activities"
