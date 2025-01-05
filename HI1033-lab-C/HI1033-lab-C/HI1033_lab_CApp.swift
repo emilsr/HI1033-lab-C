@@ -53,29 +53,6 @@ struct MainPage: View {
 }
 
 
-/*
-struct TotalDistance: Identifiable {
-    let id: UUID
-    let month: String
-    let distance: Int
-    let activityType: String
-}
-
-struct Activity: Identifiable {
-    let id: UUID
-    let month: String
-    let activityType: String
-    let value: Int
-}
-
-struct MonthlyMood: Identifiable {
-    let id: UUID
-    let month: String
-    let averageMood: Double
-}
- */
-
-
 struct ActivityMoodScreen: View {
     @State private var activities: [Activity] = []
     @State private var moods: [MonthlyMood] = []
@@ -95,7 +72,11 @@ struct ActivityMoodScreen: View {
                 Text("Activity Data")
                     .font(.headline)
 
-                activityChart
+                ActivityChart(
+                                    groupedActivities: groupedActivities(),
+                                    monthOrder: monthOrder,
+                                    months: months
+                                )
                     .frame(height: 300)
                     .padding(.horizontal)
                 

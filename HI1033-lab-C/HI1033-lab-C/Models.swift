@@ -5,6 +5,8 @@
 //  Created by Emil Stener  on 2025-01-05.
 //
 
+
+
 import Foundation
 
 struct TotalDistance: Identifiable {
@@ -26,3 +28,5 @@ struct MonthlyMood: Identifiable {
     let month: String
     let averageMood: Double
 }
+
+
