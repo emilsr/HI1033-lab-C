@@ -13,7 +13,7 @@ struct ActivityMoodScreen: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
-                Text("Activity Data")
+                Text("Number of Activitys")
                     .font(.headline)
 
                 ActivityChart(
@@ -46,7 +46,7 @@ struct ActivityMoodScreen: View {
                 .frame(height: 300)
                 .padding(.horizontal)
                 
-                Text("Scaled Data Chart")
+                Text("Average Monthly Mood Prediction")
                                     .font(.headline)
 
                                 MoodPredictionChart(
