@@ -35,6 +35,6 @@ struct DistanceChart: View {
                 }
             }
         }
-        .chartLegend(position: .top)
+        .chartLegend(position: .bottom)
     }
 }
