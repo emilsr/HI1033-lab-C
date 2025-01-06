@@ -36,10 +36,8 @@ struct ScaledDataChart: View {
                     x: .value("Month", monthOrder[data.month] ?? 0),
                     y: .value("Activity Scaled", data.activityScaled)
                 )
-                .foregroundStyle(Color.red)
                 .symbol(.square)
                 .interpolationMethod(.linear)
-                 
             }
 
             // Area between the lines
