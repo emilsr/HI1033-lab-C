@@ -5,6 +5,13 @@
 //  Created by Emil Stener  on 2025-01-06.
 //
 
+//
+//  ScaledDataChart.swift
+//  HI1033-lab-C
+//
+//  Created by Emil Stener  on 2025-01-06.
+//
+
 import SwiftUI
 import Charts
 
@@ -21,16 +28,30 @@ struct ScaledDataChart: View {
                     y: .value("Distance Scaled", data.distanceScaled)
                 )
                 .foregroundStyle(Color.green)
-                .symbol(.circle) // Use .circle symbol for the line
+                .symbol(.circle)
+                .interpolationMethod(.linear)
 
+                
                 LineMark(
                     x: .value("Month", monthOrder[data.month] ?? 0),
                     y: .value("Activity Scaled", data.activityScaled)
                 )
                 .foregroundStyle(Color.red)
-                .symbol(.square) // Use .square symbol for the second line
+                .symbol(.square)
+                .interpolationMethod(.linear)
+                 
             }
 
+            // Area between the lines
+            ForEach(scaledData, id: \.month) { data in
+                AreaMark(
+                    x: .value("Month", monthOrder[data.month] ?? 0),
+                    yStart: .value("Distance Scaled", data.distanceScaled),
+                    yEnd: .value("Activity Scaled", data.activityScaled)
+                )
+            }
+            .opacity(0.2) // Adjust opacity as needed
+            .foregroundStyle(Color.green)
         }
         .chartXAxis {
             AxisMarks(values: .stride(by: 1)) { value in
