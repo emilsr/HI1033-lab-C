@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-class ActivityMoodViewModel: ObservableObject {
+class ViewModel: ObservableObject {
     @Published var activities: [Activity] = []
     @Published var moods: [MonthlyMood] = []
     @Published var distances: [TotalDistance] = []

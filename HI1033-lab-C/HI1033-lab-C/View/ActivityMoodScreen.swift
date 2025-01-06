@@ -8,7 +8,7 @@ import SwiftUI
 
 
 struct ActivityMoodScreen: View {
-    @StateObject private var viewModel = ActivityMoodViewModel()
+    @StateObject private var viewModel = ViewModel()
 
     var body: some View {
         ScrollView {
