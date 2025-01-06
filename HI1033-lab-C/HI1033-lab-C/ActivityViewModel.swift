@@ -49,6 +49,31 @@ class ActivityMoodViewModel: ObservableObject {
         }
         .sorted { (monthOrder[$0.key] ?? 0) < (monthOrder[$1.key] ?? 0) }
     }
+    
+    
+    func getScaledData() -> [(month: String, distanceScaled: Double, activityScaled: Double)] {
+        let distances = DatabaseManager.shared.fetchDistances()
+        let activities = DatabaseManager.shared.fetchActivities()
+
+        let distanceMap = Dictionary(grouping: distances, by: { $0.month }).mapValues {
+            $0.reduce(0.0) { $0 + Double($1.distance) * 0.05 }
+        }
+
+        let activityMap = Dictionary(grouping: activities, by: { $0.month }).mapValues {
+            $0.reduce(0.0) { $0 + Double($1.value) * 0.3 }
+        }
+
+        let allMonths = Set(distanceMap.keys).union(activityMap.keys)
+
+        return allMonths.sorted(by: { getMonthOrder()[$0, default: 0] < getMonthOrder()[$1, default: 0] }).map { month in
+            (
+                month: month,
+                distanceScaled: distanceMap[month] ?? 0.0,
+                activityScaled: activityMap[month] ?? 0.0
+            )
+        }
+    }
+
 
     func getMonths() -> [String] {
         return months

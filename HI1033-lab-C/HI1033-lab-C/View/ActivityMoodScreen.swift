@@ -45,6 +45,17 @@ struct ActivityMoodScreen: View {
                 )
                 .frame(height: 300)
                 .padding(.horizontal)
+                
+                Text("Scaled Data Chart")
+                                    .font(.headline)
+
+                                ScaledDataChart(
+                                    scaledData: viewModel.getScaledData(),
+                                    monthOrder: viewModel.getMonthOrder(),
+                                    months: viewModel.getMonths()
+                                )
+                                .frame(height: 300)
+                                .padding(.horizontal)
             }
             .padding(.vertical)
         }
