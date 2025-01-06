@@ -49,7 +49,7 @@ struct ActivityMoodScreen: View {
                 Text("Scaled Data Chart")
                                     .font(.headline)
 
-                                ScaledDataChart(
+                                MoodPredictionChart(
                                     scaledData: viewModel.getScaledData(),
                                     monthOrder: viewModel.getMonthOrder(),
                                     months: viewModel.getMonths()

@@ -15,7 +15,7 @@
 import SwiftUI
 import Charts
 
-struct ScaledDataChart: View {
+struct MoodPredictionChart: View {
     let scaledData: [(month: String, distanceScaled: Double, activityScaled: Double)]
     let monthOrder: [String: Int]
     let months: [String]
