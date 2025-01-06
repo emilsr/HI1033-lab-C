@@ -2,7 +2,7 @@ import SwiftUI
 import SQLite3
 import Charts
 
-
+/*
 func getWritableDatabasePath() -> String? {
     let fileManager = FileManager.default
 
@@ -33,6 +33,8 @@ func getWritableDatabasePath() -> String? {
     print("File path:" + writableDatabasePath)
     return writableDatabasePath
 }
+ 
+*/
 
 @main
 struct MyApp: App {

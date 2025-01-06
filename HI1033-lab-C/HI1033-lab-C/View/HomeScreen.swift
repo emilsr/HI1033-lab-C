@@ -24,7 +24,7 @@ struct HomeScreen: View {
             .padding()
             
             Button(action: {
-                message = saveMood(moodValue: moodValue)  // Pass the moodValue to saveMood
+                message =  DatabaseManager.shared.saveMood(moodValue: moodValue)  // Pass the moodValue to saveMood
             }) {
                 Text("Save Mood")
                     .font(.headline)

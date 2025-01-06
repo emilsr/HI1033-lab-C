@@ -74,7 +74,6 @@ class ActivityMoodViewModel: ObservableObject {
         }
     }
 
-
     func getMonths() -> [String] {
         return months
     }

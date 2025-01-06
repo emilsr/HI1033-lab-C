@@ -8,7 +8,7 @@
 import SwiftUI
 import SQLite3
 
-
+/*
 func saveMood(moodValue: Int) -> String {
     var message: String = "" // Feedback message to the user
 
@@ -57,4 +57,4 @@ func saveMood(moodValue: Int) -> String {
 }
 
 
-
+*/
