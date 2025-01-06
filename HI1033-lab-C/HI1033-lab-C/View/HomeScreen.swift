@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct HomeScreen: View {
-    @State private var moodValue: Int = 3 // Default mood value
+    @State private var moodValue: Double = 3.0 // Default mood value
     @State private var message: String = ""
     
     var body: some View {
@@ -17,14 +17,16 @@ struct HomeScreen: View {
                 .font(.title)
                 .padding()
             
-            Stepper(value: $moodValue, in: 1...5) {
-                Text("Mood: \(moodValue)")
+            VStack {
+                Text("Mood: \(Int(moodValue))") // Display the integer value of the mood
                     .font(.headline)
+                
+                Slider(value: $moodValue, in: 1...5, step: 1) // Mood value ranges from 1 to 5
+                    .padding()
             }
-            .padding()
             
             Button(action: {
-                message =  DatabaseManager.shared.saveMood(moodValue: moodValue)  // Pass the moodValue to saveMood
+                message = DatabaseManager.shared.saveMood(moodValue: Int(moodValue)) // Convert to Int before passing
             }) {
                 Text("Save Mood")
                     .font(.headline)
@@ -42,7 +44,6 @@ struct HomeScreen: View {
                     .foregroundColor(.green)
                     .padding()
             }
-             
         }
         .padding()
     }
