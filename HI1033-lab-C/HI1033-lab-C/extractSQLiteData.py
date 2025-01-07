@@ -1,10 +1,3 @@
-//
-//  extractSQLiteData.py
-//  HI1033-lab-C
-//
-//  Created by Emil Stener  on 2025-01-07.
-//
-
 import sqlite3
 import pandas as pd
 
