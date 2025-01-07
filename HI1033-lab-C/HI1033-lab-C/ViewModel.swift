@@ -56,11 +56,11 @@ class ViewModel: ObservableObject {
         let activities = DatabaseManager.shared.fetchActivities()
 
         let distanceMap = Dictionary(grouping: distances, by: { $0.month }).mapValues {
-            $0.reduce(0.0) { $0 + Double($1.distance) * 0.05 }
+            $0.reduce(0.0) { $0 + Double($1.distance) * 0.05 }  //Magic number genereted by AI data analysis  for predicting mood
         }
 
         let activityMap = Dictionary(grouping: activities, by: { $0.month }).mapValues {
-            $0.reduce(0.0) { $0 + Double($1.value) * 0.3 }
+            $0.reduce(0.0) { $0 + Double($1.value) * 0.3 }      //Magic number genereted by AI data analysis for predicting mood
         }
 
         let allMonths = Set(distanceMap.keys).union(activityMap.keys)
