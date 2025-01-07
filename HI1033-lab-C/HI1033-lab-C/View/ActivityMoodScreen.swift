@@ -24,7 +24,7 @@ struct ActivityMoodScreen: View {
                 .frame(height: 300)
                 .padding(.horizontal)
 
-                Text("Total Distance")
+                Text("Total Distance in km")
                     .font(.headline)
 
                 DistanceChart(
