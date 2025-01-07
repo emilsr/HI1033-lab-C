@@ -2,7 +2,7 @@ import sqlite3
 import pandas as pd
 
 # Connect to SQLite database
-conn = sqlite3.connect("path/to/your/database.sqlite")
+conn = sqlite3.connect("activities.db")
 
 # Query 1: Extract data from the 'Activities' table
 activities_query = "SELECT * FROM Activities;"
